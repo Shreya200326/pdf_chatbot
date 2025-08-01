@@ -2,28 +2,42 @@ import os
 import streamlit as st
 from PyPDF2 import PdfReader
 import google.generativeai as genai
-from langchain.embeddings import HuggingFaceInferenceAPIEmbeddings
-from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.vectorstores import Chroma
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.schema import Document
+from langchain.embeddings import HuggingFaceInferenceAPIEmbeddings
 import tempfile
 
 # ------------------ SETUP ------------------
 
-# Load Gemini API key dynamically
+st.set_page_config(page_title="Gemini RAG PDF Chatbot")
+
+st.title("📄 Gemini RAG PDF Chatbot (Streamlit Cloud Compatible)")
+
+# 🔐 Load Gemini API Key
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 if not GEMINI_API_KEY:
     GEMINI_API_KEY = st.text_input("🔐 Enter your Gemini API key:", type="password")
     if not GEMINI_API_KEY:
-        st.warning("⚠️ Gemini API key required to proceed.")
+        st.warning("⚠️ Gemini API key is required.")
         st.stop()
 
 genai.configure(api_key=GEMINI_API_KEY)
 gemini_model = genai.GenerativeModel("models/gemini-1.5-flash")
 
-# Embedding model
-embedder = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+# 🔐 Load Hugging Face API Key
+HF_API_KEY = os.getenv("HF_API_KEY")
+if not HF_API_KEY:
+    HF_API_KEY = st.text_input("🧠 Enter your Hugging Face API key:", type="password")
+    if not HF_API_KEY:
+        st.warning("⚠️ Hugging Face API key is required.")
+        st.stop()
+
+# Embedding model (streamlit cloud compatible)
+embedder = HuggingFaceInferenceAPIEmbeddings(
+    api_key=HF_API_KEY,
+    model_name="sentence-transformers/all-MiniLM-L6-v2"
+)
 
 # ------------------ FUNCTIONS ------------------
 
@@ -69,9 +83,7 @@ Answer:"""
 
 # ------------------ STREAMLIT UI ------------------
 
-st.title("📄 PDF Chatbot with Gemini + Chroma (Level 1 RAG)")
-
-pdf_file = st.file_uploader("Upload your PDF", type=["pdf"])
+pdf_file = st.file_uploader("📄 Upload your PDF", type=["pdf"])
 
 if pdf_file:
     with st.spinner("🔄 Processing PDF..."):
@@ -80,7 +92,7 @@ if pdf_file:
         vectorstore = build_chroma_index(chunks)
         st.success(f"✅ Document indexed with {len(chunks)} chunks.")
 
-    query = st.text_input("Ask a question:")
+    query = st.text_input("💬 Ask a question based on the PDF:")
 
     if query:
         with st.spinner("🤖 Thinking..."):
