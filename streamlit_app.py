@@ -2,27 +2,28 @@ import os
 import streamlit as st
 from PyPDF2 import PdfReader
 import google.generativeai as genai
-import numpy as np
-import faiss
 from sentence_transformers import SentenceTransformer
+from langchain.embeddings import HuggingFaceEmbeddings
+from langchain.vectorstores import Chroma
 from langchain.text_splitter import CharacterTextSplitter
+from langchain.schema import Document
+import tempfile
 
 # ------------------ SETUP ------------------
 
-# Load Gemini API Key
+# Load Gemini API key dynamically
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 if not GEMINI_API_KEY:
     GEMINI_API_KEY = st.text_input("🔐 Enter your Gemini API key:", type="password")
     if not GEMINI_API_KEY:
-        st.warning("API key required to proceed.")
+        st.warning("⚠️ Gemini API key required to proceed.")
         st.stop()
 
-# Configure Gemini
 genai.configure(api_key=GEMINI_API_KEY)
 gemini_model = genai.GenerativeModel("models/gemini-1.5-flash")
 
 # Embedding model
-embed_model = SentenceTransformer("all-MiniLM-L6-v2")
+embedder = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
 
 # ------------------ FUNCTIONS ------------------
 
@@ -39,20 +40,21 @@ def split_into_chunks(text, chunk_size=1000, overlap=200):
     splitter = CharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=overlap)
     return splitter.split_text(text)
 
-def build_faiss_index(chunks):
-    embeddings = embed_model.encode(chunks)
-    dim = embeddings.shape[1]
-    index = faiss.IndexFlatL2(dim)
-    index.add(np.array(embeddings))
-    return index, embeddings
+def build_chroma_index(chunks):
+    docs = [Document(page_content=chunk) for chunk in chunks]
+    vectorstore = Chroma.from_documents(
+        docs, 
+        embedding=embedder, 
+        persist_directory=tempfile.mkdtemp()
+    )
+    return vectorstore
 
-def retrieve_top_k(query, chunks, index, k=4):
-    query_embedding = embed_model.encode([query])
-    _, indices = index.search(np.array(query_embedding), k)
-    return [chunks[i] for i in indices[0]]
+def retrieve_top_k(query, vectorstore, k=4):
+    results = vectorstore.similarity_search(query, k=k)
+    return [doc.page_content for doc in results]
 
-def ask_gemini(query, context_chunks):
-    context = "\n\n".join(context_chunks)
+def ask_gemini(query, top_chunks):
+    context = "\n\n".join(top_chunks)
     prompt = f"""Use the context below to answer the question.
 
 Context:
@@ -67,22 +69,22 @@ Answer:"""
 
 # ------------------ STREAMLIT UI ------------------
 
-st.title("📄 Gemini RAG PDF Chatbot (Level 1)")
+st.title("📄 PDF Chatbot with Gemini + Chroma (Level 1 RAG)")
 
-pdf = st.file_uploader("Upload your PDF", type=["pdf"])
+pdf_file = st.file_uploader("Upload your PDF", type=["pdf"])
 
-if pdf:
-    with st.spinner("Extracting and processing..."):
-        text = extract_text_from_pdf(pdf)
+if pdf_file:
+    with st.spinner("🔄 Processing PDF..."):
+        text = extract_text_from_pdf(pdf_file)
         chunks = split_into_chunks(text)
-        faiss_index, _ = build_faiss_index(chunks)
+        vectorstore = build_chroma_index(chunks)
         st.success(f"✅ Document indexed with {len(chunks)} chunks.")
 
-    user_query = st.text_input("Ask a question based on the document:")
+    query = st.text_input("Ask a question:")
 
-    if user_query:
-        with st.spinner("Searching and answering..."):
-            top_chunks = retrieve_top_k(user_query, chunks, faiss_index)
-            answer = ask_gemini(user_query, top_chunks)
+    if query:
+        with st.spinner("🤖 Thinking..."):
+            top_chunks = retrieve_top_k(query, vectorstore)
+            answer = ask_gemini(query, top_chunks)
         st.markdown("### 🤖 Answer")
         st.success(answer)
