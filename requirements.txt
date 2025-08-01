@@ -1,6 +1,6 @@
 streamlit
 PyPDF2
-sentence-transformers
 langchain
 chromadb
 google-generativeai
+huggingface_hub
