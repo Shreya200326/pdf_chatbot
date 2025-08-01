@@ -3,11 +3,13 @@ import streamlit as st
 from PyPDF2 import PdfReader
 import google.generativeai as genai
 
-# Load Gemini API key
-GEMINI_API_KEY = os.getenv("AIzaSyAy5nRc1UWcD22jAgpMO__1XV8mSaSiuUE")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+
 if not GEMINI_API_KEY:
-    st.error("Please set your GEMINI_API_KEY environment variable.")
-    st.stop()
+    GEMINI_API_KEY = st.text_input("🔐 Enter your Gemini API key:", type="password")
+    if not GEMINI_API_KEY:
+        st.warning("⚠️ API key required to proceed.")
+        st.stop()
 
 # Configure Gemini
 genai.configure(api_key=GEMINI_API_KEY)
