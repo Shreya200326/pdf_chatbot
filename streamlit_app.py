@@ -2,7 +2,7 @@ import os
 import streamlit as st
 from PyPDF2 import PdfReader
 import google.generativeai as genai
-from sentence_transformers import SentenceTransformer
+from langchain.embeddings import HuggingFaceInferenceAPIEmbeddings
 from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.vectorstores import Chroma
 from langchain.text_splitter import CharacterTextSplitter
