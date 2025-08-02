@@ -5,7 +5,7 @@ A simple yet powerful Retrieval-Augmented Generation (RAG) chatbot built using G
 
 ---
 
-## 🚀 Features
+# 🚀 Features
 
 ✅ Upload and parse PDFs  
 ✅ Chunk and embed text using Hugging Face sentence transformers  
@@ -13,7 +13,7 @@ A simple yet powerful Retrieval-Augmented Generation (RAG) chatbot built using G
 ✅ Ask natural language questions and get AI-generated answers using Google Gemini  
 ---
 
-## 🧠 How It Works
+# 🧠 How It Works
 
 1. **PDF Upload**: Upload one PDF file via the UI.  
 2. **Text Extraction**: Extract text from PDF pages.  
@@ -23,8 +23,7 @@ A simple yet powerful Retrieval-Augmented Generation (RAG) chatbot built using G
 6. **Query Answering**: Retrieve top-k similar chunks and pass them to Gemini to generate a context-aware answer.
 
 ---
-
-## 🔧 Setup Instructions
+# 🔧 Setup Instructions
 
 ### 1. Clone the Repository
 
