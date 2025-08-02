@@ -1,8 +1,4 @@
-Here’s a production-ready `README.md` for your **Gemini RAG PDF Chatbot** project:
 
----
-
-````markdown
 # 📄 Gemini RAG PDF Chatbot (Streamlit)
 
 A simple yet powerful Retrieval-Augmented Generation (RAG) chatbot built using Google Gemini and Hugging Face embeddings to answer questions based on the content of uploaded PDF documents.
@@ -107,6 +103,4 @@ Key packages used:
 * [ ] UI enhancements (dark mode, document preview, etc.)
 
 
-
-Let me know if you’d like a version with multiple PDF support or Levels 4–5 incorporated. I can also help you write a GitHub-ready `pyproject.toml` or add a `.streamlit/config.toml` if you're deploying to Streamlit Cloud.
 ```
